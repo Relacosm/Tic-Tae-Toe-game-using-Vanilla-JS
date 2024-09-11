@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic-Tac-Toe</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        #game {
+            text-align: center;
+        }
+        #board-container {
+            position: relative;
+            width: 310px;
+            height: 310px;
+            margin-top: 20px;
+        }
+        #board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-gap: 5px;
+        }
+        .cell {
+            width: 100px;
+            height: 100px;
+            background-color: white;
+            border: 1px solid #ccc;
+            font-size: 2em;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+        #line-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="game">
+        <h1>Tic-Tac-Toe</h1>
+        <div id="status"></div>
+        <div id="board-container">
+            <div id="board"></div>
+            <svg id="line-svg"></svg>
+        </div>
+    </div>
+
+    <script>
+        const board = document.getElementById('board');
+        const status = document.getElementById('status');
+        const svg = document.getElementById('line-svg');
+        let currentPlayer = 'X';
+        let gameBoard = ['', '', '', '', '', '', '', '', ''];
+        let gameActive = true;
+
+        function createBoard() {
+            for (let i = 0; i < 9; i++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                cell.setAttribute('data-index', i);
+                cell.addEventListener('click', handleCellClick);
+                board.appendChild(cell);
+            }
+        }
+
+        function handleCellClick(e) {
+            const index = e.target.getAttribute('data-index');
+            if (gameBoard[index] === '' && gameActive) {
+                gameBoard[index] = currentPlayer;
+                e.target.textContent = currentPlayer;
+                const winResult = checkWin();
+                if (winResult.win) {
+                    status.textContent = `Player ${currentPlayer} wins!`;
+                    gameActive = false;
+                    drawWinningLine(winResult.line);
+                } else if (gameBoard.every(cell => cell !== '')) {
+                    status.textContent = "It's a draw!";
+                    gameActive = false;
+                } else {
+                    currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                    status.textContent = `Player ${currentPlayer}'s turn`;
+                }
+            }
+        }
+
+        function checkWin() {
+            const winPatterns = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
+                [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
+                [0, 4, 8], [2, 4, 6] // Diagonals
+            ];
+
+            for (let i = 0; i < winPatterns.length; i++) {
+                const [a, b, c] = winPatterns[i];
+                if (gameBoard[a] && gameBoard[a] === gameBoard[b] && gameBoard[a] === gameBoard[c]) {
+                    return { win: true, line: i };
+                }
+            }
+
+            return { win: false, line: null };
+        }
+
+        function drawWinningLine(lineIndex) {
+            const lineCoordinates = [
+                [[50, 50], [260, 50]],   // top row
+                [[50, 155], [260, 155]], // middle row
+                [[50, 260], [260, 260]], // bottom row
+                [[50, 50], [50, 260]],   // left column
+                [[155, 50], [155, 260]], // middle column
+                [[260, 50], [260, 260]], // right column
+                [[50, 50], [260, 260]],  // diagonal top-left to bottom-right
+                [[260, 50], [50, 260]]   // diagonal top-right to bottom-left
+            ];
+
+            const [start, end] = lineCoordinates[lineIndex];
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', start[0]);
+            line.setAttribute('y1', start[1]);
+            line.setAttribute('x2', end[0]);
+            line.setAttribute('y2', end[1]);
+            line.setAttribute('stroke', 'red');
+            line.setAttribute('stroke-width', '5');
+
+            svg.appendChild(line);
+        }
+
+        createBoard();
+        status.textContent = `Player ${currentPlayer}'s turn`;
+    </script>
+</body>
+</html>
